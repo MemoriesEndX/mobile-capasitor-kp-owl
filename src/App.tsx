@@ -19,10 +19,11 @@ import {
 } from 'lucide-react';
 import owlLogo from './assets/owl.png';
 
-type ScreenType = 'home' | 'assessment' | 'qr-scanner' | 'assessment-webview';
+type ScreenType = 'home' | 'assessment' | 'qr-scanner' | 'assessment-webview' | 'owl-website-webview';
 type ScannerStatus = 'idle' | 'scanning' | 'detected' | 'error' | 'permission_denied';
 
 const ASSESSMENT_URL = 'http://owl.krakatauposco.co.id/assessment-access';
+const WEBSITE_LOGIN_URL = 'http://owl.krakatauposco.co.id/login';
 
 export const App: React.FC = () => {
   const [showAppSplash, setShowAppSplash] = useState(true);
@@ -63,13 +64,13 @@ export const App: React.FC = () => {
   // Monitor Network Online/Offline Status
   useEffect(() => {
     const handleOffline = () => {
-      if (currentScreen === 'assessment-webview') {
+      if (currentScreen === 'assessment-webview' || currentScreen === 'owl-website-webview') {
         setIsIframeError(true);
       }
     };
 
     const handleOnline = () => {
-      if (currentScreen === 'assessment-webview' && isIframeError) {
+      if ((currentScreen === 'assessment-webview' || currentScreen === 'owl-website-webview') && isIframeError) {
         reloadIframe();
       }
     };
@@ -86,7 +87,9 @@ export const App: React.FC = () => {
   // Hardware Android Back Button Handler
   useEffect(() => {
     const backListener = CapApp.addListener('backButton', () => {
-      if (currentScreen === 'assessment-webview') {
+      if (currentScreen === 'owl-website-webview') {
+        setCurrentScreen('home');
+      } else if (currentScreen === 'assessment-webview') {
         setCurrentScreen('assessment');
       } else if (currentScreen === 'qr-scanner') {
         stopScanner();
@@ -204,6 +207,17 @@ export const App: React.FC = () => {
     setCurrentScreen('assessment-webview');
   };
 
+  const openWebsiteLoginWebView = () => {
+    if (!navigator.onLine) {
+      setIsIframeError(true);
+      setIsIframeLoading(false);
+    } else {
+      setIsIframeLoading(true);
+      setIsIframeError(false);
+    }
+    setCurrentScreen('owl-website-webview');
+  };
+
   const showTemporaryNotice = (msg: string) => {
     setActionNotice(msg);
     setTimeout(() => {
@@ -219,10 +233,6 @@ export const App: React.FC = () => {
   const handleBackFromScanner = () => {
     stopScanner();
     setCurrentScreen('assessment');
-  };
-
-  const handleWebsitePlaceholder = () => {
-    showTemporaryNotice('KP-OWL Website dipilih (WebView /login akan aktif di Phase 6)');
   };
 
   const isOwlUrl = (text: string) => {
@@ -292,6 +302,8 @@ export const App: React.FC = () => {
     );
   }
 
+  const isWebViewScreen = currentScreen === 'assessment-webview' || currentScreen === 'owl-website-webview';
+
   return (
     <div 
       style={{
@@ -299,12 +311,12 @@ export const App: React.FC = () => {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        maxWidth: currentScreen === 'assessment-webview' ? '100vw' : '480px',
+        maxWidth: isWebViewScreen ? '100vw' : '480px',
         margin: '0 auto',
         width: '100%',
         position: 'relative',
       }}
-      className={currentScreen === 'assessment-webview' ? '' : 'safe-area-container animate-fade-in'}
+      className={isWebViewScreen ? '' : 'safe-area-container animate-fade-in'}
     >
       {/* Toast Notice */}
       {actionNotice && (
@@ -422,7 +434,7 @@ export const App: React.FC = () => {
                 type="button"
                 aria-label="KP-OWL Website"
                 className="btn-action btn-secondary"
-                onClick={handleWebsitePlaceholder}
+                onClick={openWebsiteLoginWebView}
                 style={{
                   padding: '1.15rem 1.5rem',
                   borderRadius: '1.15rem',
@@ -774,7 +786,7 @@ export const App: React.FC = () => {
                     type="button"
                     aria-label="Continue"
                     className="btn-action btn-primary"
-                    onClick={() => showTemporaryNotice('Continue pressed (WebView destination akan aktif di Phase 5)')}
+                    onClick={() => showTemporaryNotice('Continue pressed')}
                     style={{ flex: 1, padding: '0.85rem', borderRadius: '1rem', fontSize: '0.95rem' }}
                   >
                     <span>Continue</span>
@@ -796,7 +808,6 @@ export const App: React.FC = () => {
       {/* SCREEN 4: ASSESSMENT ACCESS WEBVIEW */}
       {currentScreen === 'assessment-webview' && (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', backgroundColor: '#0f172a' }}>
-          {/* Header Bar */}
           <header 
             style={{ 
               height: '56px',
@@ -836,7 +847,7 @@ export const App: React.FC = () => {
                 </span>
                 <span style={{ fontSize: '0.7rem', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                   <ShieldCheck size={10} />
-                  owl.krakatauposco.co.id
+                  owl.krakatauposco.co.id/assessment-access
                 </span>
               </div>
             </div>
@@ -861,9 +872,7 @@ export const App: React.FC = () => {
             </button>
           </header>
 
-          {/* Main Content Web Container */}
           <main style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#ffffff' }}>
-            {/* Loading Indicator */}
             {isIframeLoading && !isIframeError && (
               <div 
                 style={{
@@ -898,7 +907,6 @@ export const App: React.FC = () => {
               </div>
             )}
 
-            {/* Error State / Offline UI */}
             {isIframeError && (
               <div 
                 style={{
@@ -929,10 +937,10 @@ export const App: React.FC = () => {
                   <WifiOff size={36} style={{ color: '#ef4444' }} />
                 </div>
                 <h3 style={{ fontSize: '1.25rem', color: '#ffffff', fontWeight: 700, marginBottom: '0.5rem' }}>
-                  Unable to Connect
+                  Unable to Connect to Intranet
                 </h3>
-                <p style={{ fontSize: '0.88rem', color: '#94a3b8', maxWidth: '300px', lineHeight: 1.4, marginBottom: '1.75rem' }}>
-                  Please check your internet connection and verify access to <br />
+                <p style={{ fontSize: '0.88rem', color: '#94a3b8', maxWidth: '320px', lineHeight: 1.4, marginBottom: '1.75rem' }}>
+                  Pastikan perangkat Anda terhubung ke jaringan / Wi-Fi internal POSCO untuk mengakses <br />
                   <code style={{ color: '#38bdf8' }}>owl.krakatauposco.co.id</code>
                 </p>
 
@@ -949,7 +957,6 @@ export const App: React.FC = () => {
               </div>
             )}
 
-            {/* Iframe WebView Container */}
             <iframe
               key={iframeKey}
               ref={iframeRef}
@@ -961,9 +968,180 @@ export const App: React.FC = () => {
                 border: 'none',
                 backgroundColor: '#ffffff',
               }}
-              onLoad={() => {
+              onLoad={() => setIsIframeLoading(false)}
+              onError={() => {
                 setIsIframeLoading(false);
+                setIsIframeError(true);
               }}
+            />
+          </main>
+        </div>
+      )}
+
+      {/* SCREEN 5: KP-OWL WEBSITE LOGIN WEBVIEW */}
+      {currentScreen === 'owl-website-webview' && (
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', backgroundColor: '#0f172a' }}>
+          <header 
+            style={{ 
+              height: '56px',
+              backgroundColor: '#0b132b', 
+              borderBottom: '1px solid rgba(255, 255, 255, 0.1)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              padding: '0 1rem',
+              zIndex: 20,
+              boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
+              <button
+                type="button"
+                aria-label="Back to Home"
+                onClick={() => setCurrentScreen('home')}
+                style={{
+                  background: 'rgba(30, 41, 59, 0.8)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  color: '#f8fafc',
+                  padding: '0.45rem',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+              >
+                <ArrowLeft size={18} />
+              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  KP-OWL WEBSITE
+                </span>
+                <span style={{ fontSize: '0.7rem', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <ShieldCheck size={10} />
+                  owl.krakatauposco.co.id/login
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              aria-label="Reload Page"
+              onClick={reloadIframe}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#94a3b8',
+                padding: '0.5rem',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+              }}
+            >
+              <RotateCw size={18} className={isIframeLoading ? 'animate-spin' : ''} />
+            </button>
+          </header>
+
+          <main style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#ffffff' }}>
+            {isIframeLoading && !isIframeError && (
+              <div 
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundColor: '#0f172a',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 10,
+                  padding: '2rem',
+                }}
+              >
+                <div 
+                  style={{
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    border: '3px solid rgba(56, 189, 248, 0.2)',
+                    borderTopColor: '#38bdf8',
+                    animation: 'spin 1s linear infinite',
+                    marginBottom: '1.5rem',
+                  }}
+                />
+                <h3 style={{ fontSize: '1.1rem', color: '#ffffff', fontWeight: 600, marginBottom: '0.5rem' }}>
+                  Loading KP-OWL Website...
+                </h3>
+                <p style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                  Connecting to http://owl.krakatauposco.co.id/login
+                </p>
+              </div>
+            )}
+
+            {isIframeError && (
+              <div 
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundColor: '#0b132b',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 15,
+                  padding: '2rem',
+                  textAlign: 'center',
+                }}
+              >
+                <div 
+                  style={{
+                    width: '70px',
+                    height: '70px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '1.25rem',
+                  }}
+                >
+                  <WifiOff size={36} style={{ color: '#ef4444' }} />
+                </div>
+                <h3 style={{ fontSize: '1.25rem', color: '#ffffff', fontWeight: 700, marginBottom: '0.5rem' }}>
+                  Unable to Connect to Intranet
+                </h3>
+                <p style={{ fontSize: '0.88rem', color: '#94a3b8', maxWidth: '320px', lineHeight: 1.4, marginBottom: '1.75rem' }}>
+                  Pastikan perangkat Anda terhubung ke jaringan / Wi-Fi internal POSCO untuk membuka <br />
+                  <code style={{ color: '#38bdf8' }}>owl.krakatauposco.co.id/login</code>
+                </p>
+
+                <button
+                  type="button"
+                  aria-label="Retry Connection"
+                  className="btn-action btn-primary"
+                  onClick={reloadIframe}
+                  style={{ maxWidth: '200px', padding: '0.85rem 1.5rem', borderRadius: '1rem' }}
+                >
+                  <RotateCw size={18} />
+                  <span>Retry</span>
+                </button>
+              </div>
+            )}
+
+            <iframe
+              key={iframeKey}
+              ref={iframeRef}
+              src={WEBSITE_LOGIN_URL}
+              title="KP-OWL Website Login"
+              style={{
+                width: '100%',
+                height: '100%',
+                border: 'none',
+                backgroundColor: '#ffffff',
+              }}
+              onLoad={() => setIsIframeLoading(false)}
               onError={() => {
                 setIsIframeLoading(false);
                 setIsIframeError(true);

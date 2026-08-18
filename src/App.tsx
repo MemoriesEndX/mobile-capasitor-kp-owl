@@ -253,7 +253,7 @@ export const App: React.FC = () => {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#0b132b',
+          backgroundColor: '#070d1e',
           padding: '2rem',
           textAlign: 'center',
         }}
@@ -270,7 +270,7 @@ export const App: React.FC = () => {
             justifyContent: 'center',
             marginBottom: '2rem',
             padding: '1.25rem',
-            boxShadow: '0 0 40px rgba(37, 99, 235, 0.3)',
+            boxShadow: '0 0 35px rgba(37, 99, 235, 0.3)',
             animation: 'pulseGlow 2s infinite ease-in-out',
           }}
         >
@@ -285,15 +285,15 @@ export const App: React.FC = () => {
           />
         </div>
 
-        <h2 style={{ fontSize: '0.9rem', color: '#38bdf8', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '0.5rem', fontWeight: 600 }}>
+        <h2 style={{ fontSize: '0.85rem', color: '#38bdf8', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '0.5rem', fontWeight: 700 }}>
           KRAKATAU POSCO
         </h2>
 
-        <h1 style={{ fontSize: '1.6rem', color: '#ffffff', fontWeight: 700, lineHeight: 1.3, maxWidth: '280px' }}>
+        <h1 style={{ fontSize: '1.6rem', color: '#ffffff', fontWeight: 800, lineHeight: 1.3, maxWidth: '280px' }}>
           ONLINE KNOWLEDGE LEARNING
         </h1>
 
-        <div style={{ marginTop: '3rem', display: 'flex', gap: '6px' }}>
+        <div style={{ marginTop: '3rem', display: 'flex', gap: '8px' }}>
           <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#2563eb', animation: 'fadeIn 0.6s infinite alternate' }} />
           <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#38bdf8', animation: 'fadeIn 0.6s 0.2s infinite alternate' }} />
           <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#f97316', animation: 'fadeIn 0.6s 0.4s infinite alternate' }} />
@@ -336,7 +336,7 @@ export const App: React.FC = () => {
             boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)',
             zIndex: 100,
             fontSize: '0.85rem',
-            fontWeight: 500,
+            fontWeight: 600,
             textAlign: 'center',
             animation: 'fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
@@ -370,8 +370,8 @@ export const App: React.FC = () => {
           <main style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '1rem 0' }}>
             <div 
               style={{
-                width: '150px',
-                height: '150px',
+                width: '145px',
+                height: '145px',
                 borderRadius: '2.25rem',
                 backgroundColor: 'rgba(15, 23, 42, 0.85)',
                 border: '1px solid rgba(255, 255, 255, 0.12)',
@@ -394,7 +394,7 @@ export const App: React.FC = () => {
               />
             </div>
 
-            <p style={{ fontSize: '0.85rem', color: '#f97316', fontWeight: 700, letterSpacing: '2.5px', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+            <p style={{ fontSize: '0.82rem', color: '#f97316', fontWeight: 700, letterSpacing: '2.5px', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
               WELCOME TO
             </p>
             <h1 
@@ -409,7 +409,7 @@ export const App: React.FC = () => {
             >
               ONLINE KNOWLEDGE<br />LEARNING
             </h1>
-            <p style={{ fontSize: '0.9rem', color: '#94a3b8', maxWidth: '300px', lineHeight: 1.4 }}>
+            <p style={{ fontSize: '0.88rem', color: '#94a3b8', maxWidth: '310px', lineHeight: 1.45 }}>
               Krakatau Posco Mobile Knowledge & Assessment Platform
             </p>
 
@@ -522,7 +522,7 @@ export const App: React.FC = () => {
               KP-OWL ASSESSMENT
             </h1>
             
-            <p style={{ fontSize: '0.9rem', color: '#94a3b8', maxWidth: '320px', lineHeight: 1.4, textAlign: 'center', marginBottom: '2rem' }}>
+            <p style={{ fontSize: '0.88rem', color: '#94a3b8', maxWidth: '320px', lineHeight: 1.4, textAlign: 'center', marginBottom: '2rem' }}>
               Pilih metode untuk mengakses assessment OWL
             </p>
 
@@ -554,7 +554,7 @@ export const App: React.FC = () => {
                 </div>
                 <div style={{ flex: 1, textAlign: 'left' }}>
                   <div style={{ fontSize: '1.1rem', fontWeight: 700 }}>Scan QR Code</div>
-                  <div style={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.8)', fontWeight: 400 }}>
+                  <div style={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.85)', fontWeight: 400 }}>
                     Pindai kode QR assessment secara langsung
                   </div>
                 </div>

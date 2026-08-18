@@ -1,29 +1,57 @@
 :root {
-  /* Corporate Brand Color System */
-  --owl-bg-dark: #070d1e;
-  --owl-bg-slate: #0f172a;
-  --owl-surface-card: rgba(30, 41, 59, 0.75);
-  --owl-surface-card-border: rgba(255, 255, 255, 0.12);
-  
-  --owl-blue-primary: #1d4ed8;
-  --owl-blue-bright: #2563eb;
-  --owl-blue-sky: #38bdf8;
-  --owl-orange-accent: #f97316;
-  --owl-orange-dark: #ea580c;
-  
-  --owl-text-main: #f8fafc;
-  --owl-text-muted: #94a3b8;
+  /* Typography Scale */
+  --font-size-hero: 1.85rem;
+  --font-size-title: 1.35rem;
+  --font-size-subtitle: 1.05rem;
+  --font-size-body: 0.95rem;
+  --font-size-button: 1.05rem;
+  --font-size-caption: 0.8rem;
+
+  /* Default Light Theme Colors */
+  --owl-bg-app: #ffffff;
+  --owl-bg-surface: #f8fafc;
+  --owl-card-bg: #ffffff;
+  --owl-card-border: #e2e8f0;
+  --owl-card-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
+
+  --owl-text-main: #0f172a;
+  --owl-text-muted: #475569;
   --owl-text-caption: #64748b;
-  
+
+  --owl-blue-primary: #1d4ed8;
+  --owl-blue-hover: #1e40af;
+  --owl-orange-accent: #ea580c;
+
+  --owl-btn-secondary-bg: #f1f5f9;
+  --owl-btn-secondary-border: #cbd5e1;
+  --owl-btn-secondary-text: #0f172a;
+
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   line-height: 1.5;
   font-weight: 400;
   color: var(--owl-text-main);
-  background-color: var(--owl-bg-dark);
+  background-color: var(--owl-bg-app);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+}
+
+/* Dark Theme Overrides */
+body.dark-theme {
+  --owl-bg-app: #070d1e;
+  --owl-bg-surface: #0f172a;
+  --owl-card-bg: rgba(30, 41, 59, 0.85);
+  --owl-card-border: rgba(255, 255, 255, 0.12);
+  --owl-card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+
+  --owl-text-main: #f8fafc;
+  --owl-text-muted: #94a3b8;
+  --owl-text-caption: #64748b;
+
+  --owl-btn-secondary-bg: rgba(30, 41, 59, 0.85);
+  --owl-btn-secondary-border: rgba(56, 189, 248, 0.25);
+  --owl-btn-secondary-text: #f8fafc;
 }
 
 * {
@@ -36,8 +64,9 @@ body {
   margin: 0;
   min-height: 100vh;
   min-height: -webkit-fill-available;
-  background: linear-gradient(145deg, var(--owl-bg-dark) 0%, var(--owl-bg-slate) 45%, #1e293b 100%);
-  background-attachment: fixed;
+  background-color: var(--owl-bg-app);
+  color: var(--owl-text-main);
+  transition: background-color 0.3s ease, color 0.3s ease;
   overflow-x: hidden;
 }
 
@@ -51,20 +80,11 @@ body {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes pulseGlow {
-  0%, 100% {
-    box-shadow: 0 0 25px rgba(37, 99, 235, 0.25);
-  }
-  50% {
-    box-shadow: 0 0 35px rgba(249, 115, 22, 0.35);
   }
 }
 
@@ -78,7 +98,7 @@ body {
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-spin {
@@ -93,29 +113,24 @@ body {
   padding-right: max(1.25rem, env(safe-area-inset-right));
 }
 
-/* Corporate Glassmorphic Surface Cards */
-.glass-card {
-  background: var(--owl-surface-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--owl-surface-card-border);
-  border-radius: 1.25rem;
-}
-
-/* Standardized Button Styles */
+/* Standardized Action Buttons */
 .btn-action {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
   outline: none;
   border: none;
   width: 100%;
+  min-height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
   font-family: inherit;
+  font-size: var(--font-size-button);
   font-weight: 600;
   text-decoration: none;
+  border-radius: 1.15rem;
+  padding: 0.95rem 1.4rem;
 }
 
 .btn-action:active {
@@ -124,20 +139,18 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--owl-blue-primary) 0%, var(--owl-blue-bright) 55%, var(--owl-orange-accent) 100%);
-  background-size: 200% 200%;
+  background: linear-gradient(135deg, var(--owl-blue-primary) 0%, #2563eb 60%, var(--owl-orange-accent) 100%);
   color: #ffffff;
-  box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.4), 0 6px 12px -6px rgba(249, 115, 22, 0.3);
+  box-shadow: 0 6px 18px -4px rgba(29, 78, 216, 0.35);
 }
 
 .btn-secondary {
-  background: rgba(30, 41, 59, 0.85);
-  border: 1.5px solid rgba(56, 189, 248, 0.25);
-  color: #f1f5f9;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+  background: var(--owl-btn-secondary-bg);
+  border: 1.5px solid var(--owl-btn-secondary-border);
+  color: var(--owl-btn-secondary-text);
+  box-shadow: var(--owl-card-shadow);
 }
 
 .btn-secondary:active {
-  background: rgba(51, 65, 85, 0.95);
-  border-color: rgba(249, 115, 22, 0.5);
+  opacity: 0.9;
 }

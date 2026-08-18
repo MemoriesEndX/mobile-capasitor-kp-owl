@@ -26,3 +26,37 @@ workflows:
             -derivedDataPath ios/App/build
     artifacts:
       - ios/App/build/Build/Products/Debug-iphonesimulator/*.app
+
+  ios-device-build:
+    name: iOS Device IPA Build
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: app_store_connect_key
+    environment:
+      node: 20
+      xcode: latest
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: co.id.krakatauposco.owl
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm ci
+      - name: Build web application
+        script: |
+          npm run build
+      - name: Sync Capacitor iOS platform
+        script: |
+          npx cap sync ios
+      - name: Set up code signing settings on Xcode project
+        script: |
+          xcode-project use-profiles
+      - name: Build iOS Device IPA
+        script: |
+          xcode-project build-ipa \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release
+    artifacts:
+      - build/ios/ipa/*.ipa

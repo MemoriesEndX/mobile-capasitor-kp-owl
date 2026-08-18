@@ -8,7 +8,7 @@ def load_owl_logo():
         raise FileNotFoundError(f"Source image not found at {SOURCE_PATH}")
     return Image.open(SOURCE_PATH).convert("RGBA")
 
-def create_padded_logo_on_canvas(source_img, canvas_width, canvas_height, background_color=(255, 255, 255, 255), logo_scale=0.75):
+def create_padded_logo_on_canvas(source_img, canvas_width, canvas_height, background_color=(255, 255, 255, 255), logo_scale=0.92):
     # Create target canvas
     canvas = Image.new("RGBA", (canvas_width, canvas_height), background_color)
     
@@ -37,7 +37,7 @@ def create_padded_logo_on_canvas(source_img, canvas_width, canvas_height, backgr
     return canvas
 
 def generate_android_icons(source_img):
-    print("Generating Android Launcher Icons...")
+    print("Generating Enlarged Android Launcher Icons...")
     
     # Android mipmap densities for legacy launcher icons (canvas size, foreground safe size)
     densities = {
@@ -61,8 +61,8 @@ def generate_android_icons(source_img):
         out_dir = os.path.join("android/app/src/main/res", folder)
         os.makedirs(out_dir, exist_ok=True)
         
-        # Legacy square & round launcher icon (White background + centered logo)
-        icon_img = create_padded_logo_on_canvas(source_img, size, size, background_color=(255, 255, 255, 255), logo_scale=0.8)
+        # Legacy square & round launcher icon (White background + enlarged logo scale=0.92)
+        icon_img = create_padded_logo_on_canvas(source_img, size, size, background_color=(255, 255, 255, 255), logo_scale=0.92)
         icon_img.save(os.path.join(out_dir, "ic_launcher.png"), "PNG")
         icon_img.save(os.path.join(out_dir, "ic_launcher_round.png"), "PNG")
         
@@ -70,8 +70,8 @@ def generate_android_icons(source_img):
         out_dir = os.path.join("android/app/src/main/res", folder)
         os.makedirs(out_dir, exist_ok=True)
         
-        # Adaptive foreground (Transparent background, centered logo inside 60% inner safe zone)
-        fg_img = create_padded_logo_on_canvas(source_img, size, size, background_color=(0, 0, 0, 0), logo_scale=0.6)
+        # Adaptive foreground (Transparent background, enlarged logo scale=0.78 for prominent launcher display)
+        fg_img = create_padded_logo_on_canvas(source_img, size, size, background_color=(0, 0, 0, 0), logo_scale=0.78)
         fg_img.save(os.path.join(out_dir, "ic_launcher_foreground.png"), "PNG")
 
 def generate_android_splashes(source_img):
@@ -98,32 +98,12 @@ def generate_android_splashes(source_img):
         splash_img = create_padded_logo_on_canvas(source_img, w, h, background_color=(255, 255, 255, 255), logo_scale=0.55)
         splash_img.save(os.path.join(out_dir, "splash.png"), "PNG")
 
-def generate_ios_assets(source_img):
-    print("Generating iOS AppIcon & Splash Assets...")
-    
-    ios_appicon_dir = "ios/App/App/Assets.xcassets/AppIcon.appiconset"
-    os.makedirs(ios_appicon_dir, exist_ok=True)
-    
-    # Generate 1024x1024 universal app icon for iOS
-    app_icon_1024 = create_padded_logo_on_canvas(source_img, 1024, 1024, background_color=(255, 255, 255, 255), logo_scale=0.75)
-    app_icon_1024.save(os.path.join(ios_appicon_dir, "AppIcon-512@2x.png"), "PNG")
-    
-    # iOS Splash Screen assets
-    ios_splash_dir = "ios/App/App/Assets.xcassets/Splash.imageset"
-    os.makedirs(ios_splash_dir, exist_ok=True)
-    
-    splash_2732 = create_padded_logo_on_canvas(source_img, 2732, 2732, background_color=(255, 255, 255, 255), logo_scale=0.5)
-    splash_2732.save(os.path.join(ios_splash_dir, "splash-2732x2732.png"), "PNG")
-    splash_2732.save(os.path.join(ios_splash_dir, "splash-2732x2732-1.png"), "PNG")
-    splash_2732.save(os.path.join(ios_splash_dir, "splash-2732x2732-2.png"), "PNG")
-
 def main():
     logo = load_owl_logo()
     print(f"Loaded OWL logo successfully: size={logo.size}, mode={logo.mode}")
     generate_android_icons(logo)
     generate_android_splashes(logo)
-    generate_ios_assets(logo)
-    print("All branding assets generated successfully!")
+    print("Enlarged Android launcher icons generated successfully!")
 
 if __name__ == "__main__":
     main()

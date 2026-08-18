@@ -491,7 +491,7 @@ export const App: React.FC = () => {
 
           <footer style={{ padding: '1rem 0', textAlign: 'center' }}>
             <p style={{ fontSize: '0.75rem', color: isDarkMode ? '#64748b' : '#94a3b8' }}>
-              © {new Date().getFullYear()} PT Krakatau Posco • All Rights Reserved
+              © 2026 Krakatau Posco. All Right Reserved.
             </p>
           </footer>
         </>

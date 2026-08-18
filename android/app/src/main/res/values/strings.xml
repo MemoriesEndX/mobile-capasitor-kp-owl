@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">KP-OWL Mobile</string>
+    <string name="title_activity_main">KP-OWL Mobile</string>
+    <string name="package_name">co.id.krakatauposco.owl</string>
+    <string name="custom_url_scheme">co.id.krakatauposco.owl</string>
+</resources>

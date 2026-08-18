@@ -112,3 +112,16 @@ body {
   background: rgba(51, 65, 85, 0.95);
   border-color: rgba(249, 115, 22, 0.5);
 }
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}

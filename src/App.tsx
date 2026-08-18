@@ -12,12 +12,17 @@ import {
   AlertCircle, 
   RefreshCw, 
   CheckCircle2, 
-  ExternalLink 
+  ExternalLink,
+  WifiOff,
+  ShieldCheck,
+  RotateCw
 } from 'lucide-react';
 import owlLogo from './assets/owl.png';
 
-type ScreenType = 'home' | 'assessment' | 'qr-scanner';
+type ScreenType = 'home' | 'assessment' | 'qr-scanner' | 'assessment-webview';
 type ScannerStatus = 'idle' | 'scanning' | 'detected' | 'error' | 'permission_denied';
+
+const ASSESSMENT_URL = 'http://owl.krakatauposco.co.id/assessment-access';
 
 export const App: React.FC = () => {
   const [showAppSplash, setShowAppSplash] = useState(true);
@@ -29,6 +34,12 @@ export const App: React.FC = () => {
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const html5QrcodeRef = useRef<Html5Qrcode | null>(null);
+
+  // WebView States
+  const [isIframeLoading, setIsIframeLoading] = useState(true);
+  const [isIframeError, setIsIframeError] = useState(false);
+  const [iframeKey, setIframeKey] = useState(0);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   // Initialize Splash Screen
   useEffect(() => {
@@ -49,10 +60,35 @@ export const App: React.FC = () => {
     initApp();
   }, []);
 
+  // Monitor Network Online/Offline Status
+  useEffect(() => {
+    const handleOffline = () => {
+      if (currentScreen === 'assessment-webview') {
+        setIsIframeError(true);
+      }
+    };
+
+    const handleOnline = () => {
+      if (currentScreen === 'assessment-webview' && isIframeError) {
+        reloadIframe();
+      }
+    };
+
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [currentScreen, isIframeError]);
+
   // Hardware Android Back Button Handler
   useEffect(() => {
     const backListener = CapApp.addListener('backButton', () => {
-      if (currentScreen === 'qr-scanner') {
+      if (currentScreen === 'assessment-webview') {
+        setCurrentScreen('assessment');
+      } else if (currentScreen === 'qr-scanner') {
         stopScanner();
         setCurrentScreen('assessment');
       } else if (currentScreen === 'assessment') {
@@ -67,7 +103,7 @@ export const App: React.FC = () => {
     };
   }, [currentScreen]);
 
-  // App Lifecycle Listener (Stop camera when app is backgrounded)
+  // App Lifecycle Listener
   useEffect(() => {
     const stateListener = CapApp.addListener('appStateChange', (state) => {
       if (!state.isActive && currentScreen === 'qr-scanner') {
@@ -87,12 +123,9 @@ export const App: React.FC = () => {
     setScanResult(null);
 
     try {
-      // Check camera permission & availability
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-      // Stop temporary stream used for permission check
       stream.getTracks().forEach(track => track.stop());
 
-      // Allow DOM element to mount
       setTimeout(async () => {
         const readerElement = document.getElementById('qr-reader');
         if (!readerElement) return;
@@ -102,7 +135,7 @@ export const App: React.FC = () => {
             try {
               await html5QrcodeRef.current.stop();
             } catch {
-              // Ignore if already stopped
+              // Ignore
             }
           }
 
@@ -117,13 +150,12 @@ export const App: React.FC = () => {
               aspectRatio: 1.0,
             },
             (decodedText) => {
-              // On QR Successfully Detected
               setScanResult(decodedText);
               setScannerStatus('detected');
               scanner.stop().catch(() => {});
             },
             () => {
-              // Ignore frame scanning errors (keep scanning)
+              // Ignore frame error
             }
           );
         } catch (err: unknown) {
@@ -148,11 +180,28 @@ export const App: React.FC = () => {
           html5QrcodeRef.current.stop().catch(() => {});
         }
       } catch {
-        // Ignore stop error
+        // Ignore
       }
       html5QrcodeRef.current = null;
     }
     setScannerStatus('idle');
+  };
+
+  const reloadIframe = () => {
+    setIsIframeLoading(true);
+    setIsIframeError(false);
+    setIframeKey(prev => prev + 1);
+  };
+
+  const openAssessmentWebView = () => {
+    if (!navigator.onLine) {
+      setIsIframeError(true);
+      setIsIframeLoading(false);
+    } else {
+      setIsIframeLoading(true);
+      setIsIframeError(false);
+    }
+    setCurrentScreen('assessment-webview');
   };
 
   const showTemporaryNotice = (msg: string) => {
@@ -172,12 +221,8 @@ export const App: React.FC = () => {
     setCurrentScreen('assessment');
   };
 
-  const handleEnterCodePlaceholder = () => {
-    showTemporaryNotice('Enter Unique Code dipilih (WebView akan aktif di Phase 5)');
-  };
-
   const handleWebsitePlaceholder = () => {
-    showTemporaryNotice('KP-OWL Website dipilih (WebView akan aktif di Phase 6)');
+    showTemporaryNotice('KP-OWL Website dipilih (WebView /login akan aktif di Phase 6)');
   };
 
   const isOwlUrl = (text: string) => {
@@ -254,12 +299,12 @@ export const App: React.FC = () => {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        maxWidth: '480px',
+        maxWidth: currentScreen === 'assessment-webview' ? '100vw' : '480px',
         margin: '0 auto',
         width: '100%',
         position: 'relative',
       }}
-      className="safe-area-container animate-fade-in"
+      className={currentScreen === 'assessment-webview' ? '' : 'safe-area-container animate-fade-in'}
     >
       {/* Toast Notice */}
       {actionNotice && (
@@ -508,7 +553,7 @@ export const App: React.FC = () => {
                 type="button"
                 aria-label="Enter Unique Code"
                 className="btn-action btn-secondary"
-                onClick={handleEnterCodePlaceholder}
+                onClick={openAssessmentWebView}
                 style={{
                   padding: '1.25rem 1.5rem',
                   borderRadius: '1.25rem',
@@ -577,7 +622,6 @@ export const App: React.FC = () => {
           </header>
 
           <main style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-            {/* Camera Permission Denied or Error UI */}
             {(scannerStatus === 'permission_denied' || scannerStatus === 'error') && (
               <div 
                 style={{
@@ -622,7 +666,6 @@ export const App: React.FC = () => {
               </div>
             )}
 
-            {/* Active Scanner View */}
             {(scannerStatus === 'scanning' || scannerStatus === 'idle') && (
               <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <div 
@@ -638,7 +681,6 @@ export const App: React.FC = () => {
                 >
                   <div id="qr-reader" style={{ width: '100%', height: '100%' }} />
 
-                  {/* Corner Overlay Framing */}
                   <div style={{ position: 'absolute', top: 12, left: 12, width: 24, height: 24, borderTop: '3px solid #38bdf8', borderLeft: '3px solid #38bdf8', borderTopLeftRadius: 8 }} />
                   <div style={{ position: 'absolute', top: 12, right: 12, width: 24, height: 24, borderTop: '3px solid #38bdf8', borderRight: '3px solid #38bdf8', borderTopRightRadius: 8 }} />
                   <div style={{ position: 'absolute', bottom: 12, left: 12, width: 24, height: 24, borderBottom: '3px solid #38bdf8', borderLeft: '3px solid #38bdf8', borderBottomLeftRadius: 8 }} />
@@ -651,7 +693,6 @@ export const App: React.FC = () => {
               </div>
             )}
 
-            {/* QR Result Detected State */}
             {scannerStatus === 'detected' && scanResult && (
               <div 
                 style={{
@@ -749,6 +790,186 @@ export const App: React.FC = () => {
               KP-OWL Mobile Native Camera Scanner
             </p>
           </footer>
+        </div>
+      )}
+
+      {/* SCREEN 4: ASSESSMENT ACCESS WEBVIEW */}
+      {currentScreen === 'assessment-webview' && (
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', backgroundColor: '#0f172a' }}>
+          {/* Header Bar */}
+          <header 
+            style={{ 
+              height: '56px',
+              backgroundColor: '#0b132b', 
+              borderBottom: '1px solid rgba(255, 255, 255, 0.1)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              padding: '0 1rem',
+              zIndex: 20,
+              boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
+              <button
+                type="button"
+                aria-label="Back to Assessment"
+                onClick={() => setCurrentScreen('assessment')}
+                style={{
+                  background: 'rgba(30, 41, 59, 0.8)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  color: '#f8fafc',
+                  padding: '0.45rem',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+              >
+                <ArrowLeft size={18} />
+              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  KP-OWL ASSESSMENT
+                </span>
+                <span style={{ fontSize: '0.7rem', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <ShieldCheck size={10} />
+                  owl.krakatauposco.co.id
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              aria-label="Reload Page"
+              onClick={reloadIframe}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#94a3b8',
+                padding: '0.5rem',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+              }}
+            >
+              <RotateCw size={18} className={isIframeLoading ? 'animate-spin' : ''} />
+            </button>
+          </header>
+
+          {/* Main Content Web Container */}
+          <main style={{ flex: 1, position: 'relative', overflow: 'hidden', backgroundColor: '#ffffff' }}>
+            {/* Loading Indicator */}
+            {isIframeLoading && !isIframeError && (
+              <div 
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundColor: '#0f172a',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 10,
+                  padding: '2rem',
+                }}
+              >
+                <div 
+                  style={{
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '50%',
+                    border: '3px solid rgba(56, 189, 248, 0.2)',
+                    borderTopColor: '#38bdf8',
+                    animation: 'spin 1s linear infinite',
+                    marginBottom: '1.5rem',
+                  }}
+                />
+                <h3 style={{ fontSize: '1.1rem', color: '#ffffff', fontWeight: 600, marginBottom: '0.5rem' }}>
+                  Loading Assessment Access...
+                </h3>
+                <p style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                  Connecting to http://owl.krakatauposco.co.id
+                </p>
+              </div>
+            )}
+
+            {/* Error State / Offline UI */}
+            {isIframeError && (
+              <div 
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundColor: '#0b132b',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 15,
+                  padding: '2rem',
+                  textAlign: 'center',
+                }}
+              >
+                <div 
+                  style={{
+                    width: '70px',
+                    height: '70px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '1.25rem',
+                  }}
+                >
+                  <WifiOff size={36} style={{ color: '#ef4444' }} />
+                </div>
+                <h3 style={{ fontSize: '1.25rem', color: '#ffffff', fontWeight: 700, marginBottom: '0.5rem' }}>
+                  Unable to Connect
+                </h3>
+                <p style={{ fontSize: '0.88rem', color: '#94a3b8', maxWidth: '300px', lineHeight: 1.4, marginBottom: '1.75rem' }}>
+                  Please check your internet connection and verify access to <br />
+                  <code style={{ color: '#38bdf8' }}>owl.krakatauposco.co.id</code>
+                </p>
+
+                <button
+                  type="button"
+                  aria-label="Retry Connection"
+                  className="btn-action btn-primary"
+                  onClick={reloadIframe}
+                  style={{ maxWidth: '200px', padding: '0.85rem 1.5rem', borderRadius: '1rem' }}
+                >
+                  <RotateCw size={18} />
+                  <span>Retry</span>
+                </button>
+              </div>
+            )}
+
+            {/* Iframe WebView Container */}
+            <iframe
+              key={iframeKey}
+              ref={iframeRef}
+              src={ASSESSMENT_URL}
+              title="KP-OWL Assessment Access"
+              style={{
+                width: '100%',
+                height: '100%',
+                border: 'none',
+                backgroundColor: '#ffffff',
+              }}
+              onLoad={() => {
+                setIsIframeLoading(false);
+              }}
+              onError={() => {
+                setIsIframeLoading(false);
+                setIsIframeError(true);
+              }}
+            />
+          </main>
         </div>
       )}
     </div>
